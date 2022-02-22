@@ -33,23 +33,15 @@ __device__ Matrix GetSubMatrix(Matrix A, int row, int col)
 
 void matGPU(const Matrix A, const Matrix B, Matrix C)
 {
-    // Load A and B to device memory
-    Matrix d_A;
+    Matrix d_A, d_B, d_C;
     d_A.width = d_A.stride = A.width; d_A.height = A.height;
-    size_t size = A.width * A.height * sizeof(float);
-    cudaMalloc(&d_A.elements, size);
-    cudaMemcpy(d_A.elements, A.elements, size, cudaMemcpyHostToDevice);
-    Matrix d_B;
     d_B.width = d_B.stride = B.width; d_B.height = B.height;
-    size = B.width * B.height * sizeof(float);
-    cudaMalloc(&d_B.elements, size);
-    cudaMemcpy(d_B.elements, B.elements, size, cudaMemcpyHostToDevice);
-
-    // Allocate C in device memory
-    Matrix d_C;
     d_C.width = d_C.stride = C.width; d_C.height = C.height;
-    size = C.width * C.height * sizeof(float);
-    cudaMalloc(&d_C.elements, size);
+    cudaMalloc(&d_A.elements, A.height * A.width * sizeof(float));
+    cudaMemcpy(d_A.elements, A.elements, A.height * A.width * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMalloc(&d_B.elements, B.height * B.width * sizeof(float));
+    cudaMemcpy(d_B.elements, B.elements, B.height * B.width * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMalloc(&d_C.elements, C.height * C.width * sizeof(float));
 
     // Invoke kernel
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
@@ -70,7 +62,7 @@ void matGPU(const Matrix A, const Matrix B, Matrix C)
 
 
     // Read C from device memory
-    cudaMemcpy(C.elements, d_C.elements, size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(C.elements, d_C.elements, C.height * C.width * sizeof(float), cudaMemcpyDeviceToHost);
 
     // Free device memory
     cudaFree(d_A.elements);
@@ -136,19 +128,4 @@ __global__ void MatMulKernel(Matrix A, Matrix B, Matrix C)
 
     if(x < B.width && y < A.height) SetElement(Csub, row, col, Cvalue);
 
-}
-
-
-void printGPU(Matrix A) {
-    printf("matrix multiplication on GPU\n");
-    printf("---------------------------------------------------------------\n");
-    int idx = 0;
-
-    for (int i = 0; i < A.height; i++) {
-        for (int j = 0; j < A.width; j++) {
-            printf("%.3f ", A.elements[idx]);
-            idx++;
-        }
-        printf("\n");
-    }
 }

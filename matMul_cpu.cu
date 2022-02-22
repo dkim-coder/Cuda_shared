@@ -1,41 +1,41 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
+#include "matMul.cuh"
 
 
-void setMatrix(float* A, const int size) {
+void setMatrix(Matrix A) {
 	srand((unsigned int)time(NULL));
 
-	for (int i = 0; i < size; i++) {
-		A[i] = (float)(rand() % 100) / 10;
+	for (int i = 0; i < (A.height * A.width); i++) {
+		A.elements[i] = (float)(rand() % 100) / 10;
 	}
 }
 
 
-void matCPU(const float* A, const float* B, float* C, const int m, const int n, const int k) {
+void matCPU(const Matrix A,const Matrix B, Matrix C) {
 	int idx = 0;
 	float tmp;
 
-	for (int i = 0; i < m; i++) {
-		for (int j = 0; j < n; j++) {
+	for (int i = 0; i < A.height; i++) {
+		for (int j = 0; j < B.width; j++) {
 			tmp = 0;
-			for (int l = 0; l < k; l++) {
-				tmp += A[i * k + l] * B[l * n + j];
+			for (int l = 0; l < A.width; l++) {
+				tmp += A.elements[i * A.width + l] * B.elements[l * B.width + j];
 			}
-			C[idx] = tmp;
+			C.elements[idx] = tmp;
 			idx++;
 		}
 	}
 }
 
-void printCPU(const float* A, const int height, const int width) {
-	printf("matrix multiplication on CPU\n");
-	printf("---------------------------------------------------------------\n");
+void printMatrix(const Matrix A) {
+	printf("---------------------------------------------------------------------------------------------\n");
 	int idx = 0;
 
-	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			printf("%.3f ", A[idx]);
+	for (int i = 0; i < A.height; i++) {
+		for (int j = 0; j < A.width; j++) {
+			printf("%.8f ", A.elements[idx]);
 			idx++;
 		}
 		printf("\n");

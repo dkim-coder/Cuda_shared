@@ -2,87 +2,71 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<time.h>
+#define _CTR_SEUCRE_NO_WARNINGS
 
-
-void compare(const float*, const Matrix, const int);
-
+void compare(const Matrix, const Matrix);
 
 int main() {
     // m == a.height, n == b.width, k == a.width
     int m, n, k;
-    srand((unsigned int)time(NULL));
-    m = 110;//rand() + 16;
-    n = 110;//rand() + 16;
-    k = 110;//rand() + 16;
+    
+    printf("input a.height : ");
+    scanf("%d", &m);
+    printf("input b.width : ");
+    scanf("%d", &n);
+    printf("input a.width : ");
+    scanf("%d", &k);
 
     int size_A = m * k * sizeof(float);
     int size_B = n * k * sizeof(float);
     int size_C = m * n * sizeof(float);
 
     // memory allocation
-    float* c_A, * c_B, * c_C;
-    c_A = (float*)malloc(size_A);
-    c_B = (float*)malloc(size_B);
-    c_C = (float*)malloc(size_C);
-
-    Matrix d_A, d_B, d_C;
-    d_A.height = m; d_A.width = d_A.stride = k;
-    d_B.height = k; d_B.width = d_B.stride = n;
-    d_C.height = m; d_C.width = d_C.stride = n;
-    d_A.elements = (float*)malloc(size_A);
-    d_B.elements = (float*)malloc(size_B);
-    d_C.elements = (float*)malloc(size_C);
-
+    Matrix A, B, C1, C2;
+    A.width = A.stride = k; A.height = m;
+    B.width = B.stride = n; B.height = k;
+    C1.width = C1.stride = n; C1.height = m;
+    C2.width = C2.stride = n; C2.height = m;
+    A.elements = (float*)malloc(size_A);
+    B.elements = (float*)malloc(size_B);
+    C1.elements = (float*)malloc(size_C);
+    C2.elements = (float*)malloc(size_C);
 
     // fill matrix A, B
-    setMatrix(c_A, m * k);
-    setMatrix(c_B, k * n);
-    for (int i = 0; i < m * k; i++) {
-        d_A.elements[i] = c_A[i];
-    }
-    for (int i = 0; i < n * k; i++) {
-        d_B.elements[i] = c_B[i];
-    }
+    setMatrix(A);
+    setMatrix(B);
 
 
-    // matrix multiplication
+    // matrix multiplication on CPU
     clock_t start1, end1;
-    
     start1 = clock();
-    matCPU(c_A, c_B, c_C, m, n, k);
+    matCPU(A, B, C1);
     end1 = clock();
     printf("CPU에서 행렬곱 실행시간 : % .3f\n", (float)(end1 - start1) / CLOCKS_PER_SEC);
-    
-    //printCPU(c_C, m, n);
     printf("\n");
 
-
-    matGPU(d_A, d_B, d_C);
-  
-    //printGPU(d_C);
+    // matrix multiplication on GPU
+    matGPU(A, B, C2);
     printf("\n");
 
 
     // compare matrix
-    compare(c_C, d_C, m * n);
+    compare(C1, C2);
 
 
     // free memory
-    free(c_A);
-    free(c_B);
-    free(c_C);
-    free(d_A.elements);
-    free(d_B.elements);
-    free(d_C.elements);
+    free(A.elements);
+    free(B.elements);
+    free(C1.elements);
 
     return 0;
 }
 
 // compare matrix
-void compare(const float* c_m, const Matrix d_m, const int size) {
-    for (int i = 0; i < size; i++) {
-        if (c_m[i] != d_m.elements[i]) {
-            printf("일치하지 않는 부분 : c_C[%d] = %.3f, d_C[%d] = %.3f\n", i, c_m[i], i, d_m.elements[i]);   
+void compare(const Matrix A, const Matrix B) {
+    for (int i = 0; i < (A.height * A.width); i++) {
+        if ((A.elements[i] - B.elements[i]) > 0.00000001) {
+            printf("일치하지 않는 부분 : C1[%d] = %.8f, C2[%d] = %.8f\n", i, A.elements[i], i, B.elements[i]);   
         }
     }
 
