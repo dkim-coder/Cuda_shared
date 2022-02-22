@@ -42,7 +42,7 @@ int main() {
     start1 = clock();
     matCPU(A, B, C1);
     end1 = clock();
-    printf("CPU에서 행렬곱 실행시간 : % .3f\n", (float)(end1 - start1) / CLOCKS_PER_SEC);
+    printf("CPU에서 행렬곱 실행시간 : % .8f second\n", (float)(end1 - start1) / CLOCKS_PER_SEC);
     printf("\n");
 
     // matrix multiplication on GPU
@@ -53,6 +53,7 @@ int main() {
     // compare matrix
     compare(C1, C2);
 
+    //printMatrix(C1);
 
     // free memory
     free(A.elements);

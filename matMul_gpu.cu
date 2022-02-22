@@ -52,15 +52,16 @@ void matGPU(const Matrix A, const Matrix B, Matrix C)
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 
-    cudaEventRecord(start);
+    cudaEventRecord(start, 0);
     MatMulKernel << <dimGrid, dimBlock >> > (d_A, d_B, d_C);
-    cudaEventRecord(stop);
+    cudaEventRecord(stop, 0);
     cudaEventSynchronize(stop);
-    float milliseconds = 0.0;
+    float milliseconds = 0.0f;
     cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("GPU에서 행렬곱 실행시간 : % .3f\n", milliseconds);
+    printf("GPU에서 행렬곱 실행시간 : % .8f second\n", milliseconds/100.);
 
-
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
     // Read C from device memory
     cudaMemcpy(C.elements, d_C.elements, C.height * C.width * sizeof(float), cudaMemcpyDeviceToHost);
 
