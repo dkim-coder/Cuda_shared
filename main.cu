@@ -17,9 +17,9 @@ int main() {
     printf("input a.width : ");
     scanf("%d", &k);
 
-    int size_A = m * k * sizeof(float);
-    int size_B = n * k * sizeof(float);
-    int size_C = m * n * sizeof(float);
+    size_t size_A = m * k * sizeof(float);
+    size_t size_B = n * k * sizeof(float);
+    size_t size_C = m * n * sizeof(float);
 
     // memory allocation
     Matrix A, B, C1, C2;
@@ -52,13 +52,14 @@ int main() {
 
     // compare matrix
     compare(C1, C2);
-
-    //printMatrix(C1);
+    
+    //printMatrix(C2);
 
     // free memory
     free(A.elements);
     free(B.elements);
     free(C1.elements);
+    free(C2.elements);
 
     return 0;
 }
@@ -67,7 +68,7 @@ int main() {
 void compare(const Matrix A, const Matrix B) {
     for (int i = 0; i < (A.height * A.width); i++) {
         if ((A.elements[i] - B.elements[i]) > 0.000000001) {
-            printf("일치하지 않는 부분 : C1[%d] = %.8f, C2[%d] = %.8f\n", i, A.elements[i], i, B.elements[i]);   
+            printf("일치하지 않는 부분 : CPU[%d] = %.8f, GPU[%d] = %.8f\n", i, A.elements[i], i, B.elements[i]);   
         }
     }
 

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 3
 
 
 __device__ float GetElement(const Matrix A, int row, int col)
@@ -37,33 +37,38 @@ void matGPU(const Matrix A, const Matrix B, Matrix C)
     d_A.width = d_A.stride = A.width; d_A.height = A.height;
     d_B.width = d_B.stride = B.width; d_B.height = B.height;
     d_C.width = d_C.stride = C.width; d_C.height = C.height;
-    cudaMalloc(&d_A.elements, A.height * A.width * sizeof(float));
-    cudaMemcpy(d_A.elements, A.elements, A.height * A.width * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMalloc(&d_B.elements, B.height * B.width * sizeof(float));
-    cudaMemcpy(d_B.elements, B.elements, B.height * B.width * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMalloc(&d_C.elements, C.height * C.width * sizeof(float));
+
+    size_t size_a = d_A.height * d_A.width * sizeof(float);
+    size_t size_b = d_B.height * d_B.width * sizeof(float);
+    size_t size_c = d_C.height * d_C.width * sizeof(float);
+    
+    // memory allocation
+    cudaMalloc(&d_A.elements, size_a);
+    cudaMemcpy(d_A.elements, A.elements, size_a, cudaMemcpyHostToDevice);
+    cudaMalloc(&d_B.elements, size_b);
+    cudaMemcpy(d_B.elements, B.elements, size_b, cudaMemcpyHostToDevice);
+    cudaMalloc(&d_C.elements, size_c);
 
     // Invoke kernel
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
-    dim3 dimGrid((B.width + BLOCK_SIZE - 1) / BLOCK_SIZE, (A.height + BLOCK_SIZE - 1) / BLOCK_SIZE);
+    dim3 dimGrid((B.width + dimBlock.x - 1) / dimBlock.x, (A.height + dimBlock.y - 1) / dimBlock.y);
     
 
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-
     cudaEventRecord(start, 0);
     MatMulKernel << <dimGrid, dimBlock >> > (d_A, d_B, d_C);
     cudaEventRecord(stop, 0);
     cudaEventSynchronize(stop);
     float milliseconds = 0.0f;
     cudaEventElapsedTime(&milliseconds, start, stop);
-    printf("GPU에서 행렬곱 실행시간 : % .8f second\n", milliseconds/100.);
-
+    printf("GPU에서 행렬곱 실행시간 : % .8f second\n", milliseconds/1000.);
     cudaEventDestroy(start);
     cudaEventDestroy(stop);
+    
     // Read C from device memory
-    cudaMemcpy(C.elements, d_C.elements, C.height * C.width * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(C.elements, d_C.elements, size_c, cudaMemcpyDeviceToHost);
 
     // Free device memory
     cudaFree(d_A.elements);
@@ -72,49 +77,34 @@ void matGPU(const Matrix A, const Matrix B, Matrix C)
 }
 
 // Matrix multiplication kernel called by MatMul()
-__global__ void MatMulKernel(Matrix A, Matrix B, Matrix C)
+__global__ void MatMulKernel(const Matrix A, const Matrix B, Matrix C)
 {
-    // Block row and column
     int blockRow = blockIdx.y;
     int blockCol = blockIdx.x;
-
-    // Each thread block computes one sub-matrix Csub of C
-    Matrix Csub = GetSubMatrix(C, blockRow, blockCol);
-
-    // Each thread computes one element of Csub
-    // by accumulating results into Cvalue
-    float Cvalue = 0;
-
-    // Thread row and column within Csub
     int row = threadIdx.y;
     int col = threadIdx.x;
-
-
     int x = BLOCK_SIZE * blockCol + col;
     int y = BLOCK_SIZE * blockRow + row;
 
+    Matrix Csub = GetSubMatrix(C, blockRow, blockCol);
 
-    for (int k = 0; k < (A.width + BLOCK_SIZE - 1) / BLOCK_SIZE; k++) {
+    float Cvalue = 0;
 
-        // Get sub-matrix Asub of A
+
+    for (int k = 0; k < (A.width + BLOCK_SIZE - 1) / BLOCK_SIZE; ++k) {
         Matrix Asub = GetSubMatrix(A, blockRow, k);
-
-        // Get sub-matrix Bsub of B
         Matrix Bsub = GetSubMatrix(B, k, blockCol);
 
-        // Shared memory used to store Asub and Bsub respectively
         __shared__ float As[BLOCK_SIZE][BLOCK_SIZE];
         __shared__ float Bs[BLOCK_SIZE][BLOCK_SIZE];
 
-        // Load Asub and Bsub from device memory to shared memory
-        // Each thread loads one element of each sub-matrix
         As[row][col] = GetElement(Asub, row, col);
         Bs[row][col] = GetElement(Bsub, row, col);
 
         __syncthreads();
 
-        if (k == ((A.width + BLOCK_SIZE - 1) / BLOCK_SIZE - 1)) {
-            for (int e = 0; e < (A.width - BLOCK_SIZE * k); e++) {
+        if (k == ((A.width + BLOCK_SIZE - 1) / BLOCK_SIZE) - 1) {
+            for (int e = 0; e < (A.width - k * BLOCK_SIZE); e++) {
                 Cvalue += As[row][e] * Bs[e][col];
             }
         }
@@ -123,10 +113,8 @@ __global__ void MatMulKernel(Matrix A, Matrix B, Matrix C)
                 Cvalue += As[row][e] * Bs[e][col];
             }
         }
-
         __syncthreads();
     }
 
     if(x < B.width && y < A.height) SetElement(Csub, row, col, Cvalue);
-
 }
