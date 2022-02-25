@@ -66,7 +66,7 @@ int main() {
 // compare matrix
 void compare(const Matrix A, const Matrix B) {
     for (int i = 0; i < (A.height * A.width); i++) {
-        if ((A.elements[i] - B.elements[i]) > 0.00000001) {
+        if ((A.elements[i] - B.elements[i]) > 0.000000001) {
             printf("일치하지 않는 부분 : C1[%d] = %.8f, C2[%d] = %.8f\n", i, A.elements[i], i, B.elements[i]);   
         }
     }
