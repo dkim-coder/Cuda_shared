@@ -8,7 +8,7 @@ void setMatrix(Matrix A) {
 	srand((unsigned int)time(NULL));
 
 	for (int i = 0; i < (A.height * A.width); i++) {
-		A.elements[i] = (float)(rand() % 100) / 10;
+		A.elements[i] = (float)(rand() % 100) / 1000;
 	}
 }
 

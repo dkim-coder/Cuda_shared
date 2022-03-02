@@ -5,9 +5,6 @@
 #include <stdlib.h>
 
 
-#define BLOCK_SIZE 3
-
-
 __device__ float GetElement(const Matrix A, int row, int col)
 {
     return A.elements[row * A.stride + col];
@@ -27,9 +24,9 @@ __device__ Matrix GetSubMatrix(Matrix A, int row, int col)
     Asub.height = BLOCK_SIZE;
     Asub.stride = A.stride;
     Asub.elements = &A.elements[A.stride * BLOCK_SIZE * row + BLOCK_SIZE * col];
+    
     return Asub;
 }
-
 
 void matGPU(const Matrix A, const Matrix B, Matrix C)
 {
@@ -48,6 +45,7 @@ void matGPU(const Matrix A, const Matrix B, Matrix C)
     cudaMalloc(&d_B.elements, size_b);
     cudaMemcpy(d_B.elements, B.elements, size_b, cudaMemcpyHostToDevice);
     cudaMalloc(&d_C.elements, size_c);
+    cudaMemset(d_C.elements, 0, size_c);
 
     // Invoke kernel
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
@@ -57,9 +55,19 @@ void matGPU(const Matrix A, const Matrix B, Matrix C)
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
-    cudaEventRecord(start, 0);
-    MatMulKernel << <dimGrid, dimBlock >> > (d_A, d_B, d_C);
-    cudaEventRecord(stop, 0);
+    cudaEventRecord(start);
+    
+    //cudaEvent_t stat;
+    //cudaEventCreate(&stat);
+    //cudaError_t error;
+    //error = cudaEventQuery(stat);
+
+    MatMulKernel <<<dimGrid, dimBlock >>> (d_A, d_B, d_C);
+    
+    //printf("%s\n", cudaGetErrorName(error));
+    //cudaEventDestroy(stat);
+
+    cudaEventRecord(stop);
     cudaEventSynchronize(stop);
     float milliseconds = 0.0f;
     cudaEventElapsedTime(&milliseconds, start, stop);
@@ -88,33 +96,36 @@ __global__ void MatMulKernel(const Matrix A, const Matrix B, Matrix C)
 
     Matrix Csub = GetSubMatrix(C, blockRow, blockCol);
 
-    float Cvalue = 0;
+    __shared__ float As[BLOCK_SIZE][BLOCK_SIZE];
+    __shared__ float Bs[BLOCK_SIZE][BLOCK_SIZE];
 
+    float Cvalue = 0.0f;
 
-    for (int k = 0; k < (A.width + BLOCK_SIZE - 1) / BLOCK_SIZE; ++k) {
+    for (int k = 0; k < (A.width + BLOCK_SIZE - 1) / BLOCK_SIZE; k++) {
         Matrix Asub = GetSubMatrix(A, blockRow, k);
         Matrix Bsub = GetSubMatrix(B, k, blockCol);
 
-        __shared__ float As[BLOCK_SIZE][BLOCK_SIZE];
-        __shared__ float Bs[BLOCK_SIZE][BLOCK_SIZE];
+        As[row][col] = 0.0f;
+        Bs[row][col] = 0.0f;
 
-        As[row][col] = GetElement(Asub, row, col);
-        Bs[row][col] = GetElement(Bsub, row, col);
-
-        __syncthreads();
-
-        if (k == ((A.width + BLOCK_SIZE - 1) / BLOCK_SIZE) - 1) {
-            for (int e = 0; e < (A.width - k * BLOCK_SIZE); e++) {
-                Cvalue += As[row][e] * Bs[e][col];
-            }
+        if (k == ((A.width + BLOCK_SIZE - 1) / BLOCK_SIZE - 1)) {
+            if (y < A.height && (col < A.width - k * BLOCK_SIZE)) As[row][col] = GetElement(Asub, row, col);
+            if (x < B.width && (row < A.width - k * BLOCK_SIZE)) Bs[row][col] = GetElement(Bsub, row, col);
         }
         else {
-            for (int e = 0; e < BLOCK_SIZE; e++) {
-                Cvalue += As[row][e] * Bs[e][col];
-            }
+            if (y < A.height) As[row][col] = GetElement(Asub, row, col);
+            if (x < B.width) Bs[row][col] = GetElement(Bsub, row, col);
         }
+        __syncthreads();
+        
+        for (int e = 0; e < BLOCK_SIZE; e++) {
+            Cvalue += As[row][e] * Bs[e][col];
+        }
+
         __syncthreads();
     }
 
-    if(x < B.width && y < A.height) SetElement(Csub, row, col, Cvalue);
+    if (x < B.width && y < A.height) {
+        SetElement(Csub, row, col, Cvalue);
+    }
 }

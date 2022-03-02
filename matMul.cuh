@@ -4,6 +4,8 @@
 #ifndef _matMul_cuh_
 #define _matMul_cuh_
 
+#define BLOCK_SIZE 16
+
 typedef struct {
     int width;
     int height;
