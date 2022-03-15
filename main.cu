@@ -64,15 +64,21 @@ int main() {
 
 // compare matrix
 void compare(const Matrix A, const Matrix B) {
+    bool r = true;
+    
     for (int i = 0; i < (A.height * A.width); i++) {
         double diff = A.elements[i] - B.elements[i];
         if (diff < 0) { diff *= -1;  }
 
         if (diff > 0.00000001) {
-            printf("일치하지 않는 부분 : CPU[%d] = %.8f, GPU[%d] = %.8f\n", i, A.elements[i], i, B.elements[i]);   
+            printf("일치하지 않는 부분 : CPU[%d] = %.8f, GPU[%d] = %.8f\n", i, A.elements[i], i, B.elements[i]);
+            r = false;
         }
     }
 
-    printf("두 행렬이 일치합니다.\n");
+    if (r == true) {
+        printf("두 행렬이 일치합니다.\n");
+    }
+    
     return;
 }
