@@ -25,4 +25,7 @@ __device__ Matrix GetSubMatrix(Matrix, int, int);
 __global__ void MatMulKernel(const Matrix, const Matrix, Matrix);
 void matGPU(const Matrix, const Matrix, Matrix);
 
+
+int cublasMat(const Matrix, const Matrix, Matrix);
+
 #endif 

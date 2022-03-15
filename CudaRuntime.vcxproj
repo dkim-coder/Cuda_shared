@@ -13,6 +13,7 @@
   <ItemGroup>
     <CudaCompile Include="main.cu" />
     <CudaCompile Include="matMul_cpu.cu" />
+    <CudaCompile Include="matMul_cublas.cu" />
     <CudaCompile Include="matMul_gpu.cu" />
   </ItemGroup>
   <ItemGroup>

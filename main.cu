@@ -22,7 +22,7 @@ int main() {
     size_t size_C = m * n * sizeof(float);
 
     // memory allocation
-    Matrix A, B, C1, C2;
+    Matrix A, B, C1, C2, C3;
     A.width = A.stride = k; A.height = m;
     B.width = B.stride = n; B.height = k;
     C1.width = C1.stride = n; C1.height = m;
@@ -31,6 +31,7 @@ int main() {
     B.elements = (float*)malloc(size_B);
     C1.elements = (float*)malloc(size_C);
     C2.elements = (float*)malloc(size_C);
+    C3.elements = (float*)malloc(size_C);
 
     // fill matrix A, B
     setMatrix(A);
@@ -52,12 +53,18 @@ int main() {
     // compare matrix
     compare(C1, C2);
     
+    // matrix multiplication using cublas
+    cublasMat(A, B, C3);
+    printMatrix(C3);
+
+
 
     // free memory
     free(A.elements);
     free(B.elements);
     free(C1.elements);
     free(C2.elements);
+    free(C3.elements);
 
     return 0;
 }
