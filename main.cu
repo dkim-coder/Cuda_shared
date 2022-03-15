@@ -54,8 +54,8 @@ int main() {
     compare(C1, C2);
     
     // matrix multiplication using cublas
-    cublasMat(A, B, C3);
-    printMatrix(C3);
+    //cublasMat(A, B, C3);
+    //printMatrix(C3);
 
 
 

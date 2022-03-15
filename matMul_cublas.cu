@@ -42,7 +42,7 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
 
 
     // Create handle
-    stat = cublasCreate(&handle);
+    stat = cublasCreate_v2(&handle);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("CUBLAS initialization failed\n");
         cudaFree(d_A.elements);
@@ -52,12 +52,12 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
         return EXIT_FAILURE;
     }
 
-
+ 
     // set Matrix d_A, d_B
     stat = cublasSetMatrix(A.height, A.width, sizeof(float), A.elements, A.height, d_A.elements, d_A.height);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("data download failed");
-        cublasDestroy(handle);
+        cublasDestroy_v2(handle);
         cudaFree(d_A.elements);
         cudaFree(d_B.elements);
         cudaFree(d_C.elements);
@@ -67,7 +67,7 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
     stat = cublasSetMatrix(B.height, B.width, sizeof(float), B.elements, B.height, d_B.elements, d_B.height);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("data download failed");
-        cublasDestroy(handle);
+        cublasDestroy_v2(handle);
         cudaFree(d_A.elements);
         cudaFree(d_B.elements);
         cudaFree(d_C.elements);
@@ -78,13 +78,13 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
     // d_C = d_A * d_B
     float const alpha(1.0);
     float const beta(0.0);
-    stat = cublasSgemm(handle, CUBLAS_OP_N, CUBLAS_OP_N, d_A.height, d_B.width, d_A.width, &alpha, d_A.elements, d_A.height, d_B.elements, d_B.height, &beta, d_C.elements, d_C.height);
+    stat = cublasSgemm_v2(handle, CUBLAS_OP_N, CUBLAS_OP_N, d_A.height, d_B.width, d_A.width, &alpha, d_A.elements, d_A.height, d_B.elements, d_B.height, &beta, d_C.elements, d_C.height);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("mutiply matrix failed");
         cudaFree(d_A.elements);
         cudaFree(d_B.elements);
         cudaFree(d_C.elements);
-        cublasDestroy(handle);
+        cublasDestroy_v2(handle);
         
         return EXIT_FAILURE;
     }
@@ -96,14 +96,14 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
         cudaFree(d_A.elements);
         cudaFree(d_B.elements);
         cudaFree(d_C.elements);
-        cublasDestroy(handle);
+        cublasDestroy_v2(handle);
 
         return EXIT_FAILURE;
     }
 
 
     // Free memory on GPU side
-    cublasDestroy(handle);
+    cublasDestroy_v2(handle);
     cudaFree(d_A.elements);
     cudaFree(d_B.elements);
     cudaFree(d_C.elements);
