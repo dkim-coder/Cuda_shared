@@ -21,6 +21,10 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
     size_t size_b = d_B.height * d_B.width * sizeof(float);
     size_t size_c = d_C.height * d_C.width * sizeof(float);
 
+    int m, n, k;
+    m = d_A.height;
+    n = d_B.width;
+    k = d_A.width;
     
     // memory allocation
     cudaStat = cudaMalloc(&d_A.elements, size_a);
@@ -77,7 +81,14 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
     // d_C = d_A * d_B
     float const alpha(1.0);
     float const beta(0.0);
-    stat = cublasSgemm_v2(handle, CUBLAS_OP_N, CUBLAS_OP_N, d_A.height, d_B.width, d_A.width, &alpha, d_A.elements, d_A.height, d_B.elements, d_B.height, &beta, d_C.elements, d_C.height);
+    
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    cudaEventRecord(start);
+
+    // ???
+    stat = cublasSgemm_v2(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, m, k, &alpha, d_B.elements, n, d_A.elements, k, &beta, d_C.elements, n);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("mutiply matrix in device failed");
         cudaFree(d_A.elements);
@@ -87,6 +98,15 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
         
         return EXIT_FAILURE;
     }
+
+    cudaEventRecord(stop);
+    cudaEventSynchronize(stop);
+    float milliseconds = 0.0f;
+    cudaEventElapsedTime(&milliseconds, start, stop);
+    printf("cublas --->>> GPU에서 행렬곱 실행시간 : % .8f second\n", milliseconds / 1000.);
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
+
     
    // Get matrix
     stat = cublasGetMatrix(d_C.height, d_C.width, sizeof(float), d_C.elements, d_C.height, C.elements, C.height);

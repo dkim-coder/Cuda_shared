@@ -51,16 +51,19 @@ int main() {
     printf("\n");
 
 
-    // compare matrix
-    compare(C1, C2);
-    
     // matrix multiplication using cublas
     cublasMat(A, B, C3);
-    
-    printMatrix(C1);
-    printMatrix(C2);
-    printMatrix(C3);
+    printf("\n");
 
+
+    // compare matrix
+    compare(C1, C2);
+    compare(C1, C3);
+    
+    
+    //printMatrix(C1);
+    //printMatrix(C2);
+    //printMatrix(C3);
 
 
     // free memory

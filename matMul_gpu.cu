@@ -56,16 +56,8 @@ void matGPU(const Matrix A, const Matrix B, Matrix C)
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     cudaEventRecord(start);
-    
-    //cudaEvent_t stat;
-    //cudaEventCreate(&stat);
-    //cudaError_t error;
-    //error = cudaEventQuery(stat);
 
-    MatMulKernel <<<dimGrid, dimBlock >>> (d_A, d_B, d_C);
-    
-    //printf("%s\n", cudaGetErrorName(error));
-    //cudaEventDestroy(stat);
+    MatMulKernel <<<dimGrid, dimBlock >>> (d_A, d_B, d_C);    
 
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
