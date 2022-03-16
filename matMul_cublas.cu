@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include "cuda_runtime.h"
 #include "cublas_v2.h"
 #include "matMul.cuh"
@@ -56,7 +55,7 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
     // set Matrix d_A, d_B
     stat = cublasSetMatrix(A.height, A.width, sizeof(float), A.elements, A.height, d_A.elements, d_A.height);
     if (stat != CUBLAS_STATUS_SUCCESS) {
-        printf("data download failed");
+        printf("data download from host to device failed");
         cublasDestroy_v2(handle);
         cudaFree(d_A.elements);
         cudaFree(d_B.elements);
@@ -66,7 +65,7 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
     }
     stat = cublasSetMatrix(B.height, B.width, sizeof(float), B.elements, B.height, d_B.elements, d_B.height);
     if (stat != CUBLAS_STATUS_SUCCESS) {
-        printf("data download failed");
+        printf("data download from host to device failed");
         cublasDestroy_v2(handle);
         cudaFree(d_A.elements);
         cudaFree(d_B.elements);
@@ -80,7 +79,7 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
     float const beta(0.0);
     stat = cublasSgemm_v2(handle, CUBLAS_OP_N, CUBLAS_OP_N, d_A.height, d_B.width, d_A.width, &alpha, d_A.elements, d_A.height, d_B.elements, d_B.height, &beta, d_C.elements, d_C.height);
     if (stat != CUBLAS_STATUS_SUCCESS) {
-        printf("mutiply matrix failed");
+        printf("mutiply matrix in device failed");
         cudaFree(d_A.elements);
         cudaFree(d_B.elements);
         cudaFree(d_C.elements);
@@ -92,7 +91,7 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
    // Get matrix
     stat = cublasGetMatrix(d_C.height, d_C.width, sizeof(float), d_C.elements, d_C.height, C.elements, C.height);
     if (stat != CUBLAS_STATUS_SUCCESS) {
-        printf("data download failed");
+        printf("data download from device to host failed");
         cudaFree(d_A.elements);
         cudaFree(d_B.elements);
         cudaFree(d_C.elements);

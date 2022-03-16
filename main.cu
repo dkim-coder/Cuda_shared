@@ -27,6 +27,7 @@ int main() {
     B.width = B.stride = n; B.height = k;
     C1.width = C1.stride = n; C1.height = m;
     C2.width = C2.stride = n; C2.height = m;
+    C3.width = C3.stride = n; C3.height = m;
     A.elements = (float*)malloc(size_A);
     B.elements = (float*)malloc(size_B);
     C1.elements = (float*)malloc(size_C);
@@ -54,8 +55,11 @@ int main() {
     compare(C1, C2);
     
     // matrix multiplication using cublas
-    //cublasMat(A, B, C3);
-    //printMatrix(C3);
+    cublasMat(A, B, C3);
+    
+    printMatrix(C1);
+    printMatrix(C2);
+    printMatrix(C3);
 
 
 
