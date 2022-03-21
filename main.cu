@@ -58,7 +58,7 @@ int main() {
 
 
     // compare matrix
-    compare(C1, C2);
+    //compare(C1, C2);
     compare(C1, C3);
     
 
@@ -86,8 +86,8 @@ void compare(const Matrix A, const Matrix B) {
         double diff = A.elements[i] - B.elements[i];
         if (diff < 0) { diff *= -1;  }
 
-        // 내가 만든 커널이 정밀도? 는 더 높다 0 개수 차이
-        if (diff > 0.00000000001) {
+        // 10^-15
+        if (diff > 0.000000000000001) {
             printf("일치하지 않는 부분 : CPU[%d] = %.15lf, GPU[%d] = %.15lf\n", i, A.elements[i], i, B.elements[i]);
             r = false;
         }
