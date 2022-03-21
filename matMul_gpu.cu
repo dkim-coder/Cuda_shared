@@ -5,13 +5,13 @@
 #include <stdlib.h>
 
 
-__device__ float GetElement(const Matrix A, int row, int col)
+__device__ double GetElement(const Matrix A, int row, int col)
 {
     return A.elements[row * A.stride + col];
 }
 
 
-__device__ void SetElement(Matrix A, int row, int col, float value)
+__device__ void SetElement(Matrix A, int row, int col, double value)
 {
     A.elements[row * A.stride + col] = value;
 }
@@ -28,6 +28,7 @@ __device__ Matrix GetSubMatrix(Matrix A, int row, int col)
     return Asub;
 }
 
+
 void matGPU(const Matrix A, const Matrix B, Matrix C)
 {
     Matrix d_A, d_B, d_C;
@@ -35,9 +36,9 @@ void matGPU(const Matrix A, const Matrix B, Matrix C)
     d_B.width = d_B.stride = B.width; d_B.height = B.height;
     d_C.width = d_C.stride = C.width; d_C.height = C.height;
 
-    size_t size_a = d_A.height * d_A.width * sizeof(float);
-    size_t size_b = d_B.height * d_B.width * sizeof(float);
-    size_t size_c = d_C.height * d_C.width * sizeof(float);
+    size_t size_a = d_A.height * d_A.width * sizeof(double);
+    size_t size_b = d_B.height * d_B.width * sizeof(double);
+    size_t size_c = d_C.height * d_C.width * sizeof(double);
     
     // memory allocation
     cudaMalloc(&d_A.elements, size_a);
@@ -88,17 +89,17 @@ __global__ void MatMulKernel(const Matrix A, const Matrix B, Matrix C)
 
     Matrix Csub = GetSubMatrix(C, blockRow, blockCol);
 
-    __shared__ float As[BLOCK_SIZE][BLOCK_SIZE];
-    __shared__ float Bs[BLOCK_SIZE][BLOCK_SIZE];
+    __shared__ double As[BLOCK_SIZE][BLOCK_SIZE];
+    __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE];
 
-    float Cvalue = 0.0f;
+    double Cvalue = 0.0;
 
     for (int k = 0; k < (A.width + BLOCK_SIZE - 1) / BLOCK_SIZE; k++) {
         Matrix Asub = GetSubMatrix(A, blockRow, k);
         Matrix Bsub = GetSubMatrix(B, k, blockCol);
 
-        As[row][col] = 0.0f;
-        Bs[row][col] = 0.0f;
+        As[row][col] = 0.0;
+        Bs[row][col] = 0.0;
 
         if (k == ((A.width + BLOCK_SIZE - 1) / BLOCK_SIZE - 1)) {
             if (y < A.height && (col < A.width - k * BLOCK_SIZE)) As[row][col] = GetElement(Asub, row, col);

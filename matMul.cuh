@@ -6,12 +6,12 @@
 
 #define BLOCK_SIZE 16
 
-typedef struct {
+typedef struct{
     int width;
     int height;
     int stride;
-    float* elements;
-} Matrix;
+    double* elements;
+}Matrix;
 
 
 void setMatrix(Matrix);
@@ -19,8 +19,8 @@ void matCPU(const Matrix, const Matrix, Matrix);
 void printMatrix(const Matrix);
 
 
-__device__ float GetElement(const Matrix, int, int);
-__device__ void SetElement(Matrix, int, int, float);
+__device__ double GetElement(const Matrix, int, int);
+__device__ void SetElement(Matrix, int, int, double);
 __device__ Matrix GetSubMatrix(Matrix, int, int);
 __global__ void MatMulKernel(const Matrix, const Matrix, Matrix);
 void matGPU(const Matrix, const Matrix, Matrix);

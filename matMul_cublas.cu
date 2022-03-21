@@ -17,9 +17,9 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
     d_A.width = d_A.stride = A.width; d_A.height = A.height;
     d_B.width = d_B.stride = B.width; d_B.height = B.height;
     d_C.width = d_C.stride = C.width; d_C.height = C.height;
-    size_t size_a = d_A.height * d_A.width * sizeof(float);
-    size_t size_b = d_B.height * d_B.width * sizeof(float);
-    size_t size_c = d_C.height * d_C.width * sizeof(float);
+    size_t size_a = d_A.height * d_A.width * sizeof(double);
+    size_t size_b = d_B.height * d_B.width * sizeof(double);
+    size_t size_c = d_C.height * d_C.width * sizeof(double);
 
     int m, n, k;
     m = d_A.height;
@@ -57,7 +57,7 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
 
  
     // set Matrix d_A, d_B
-    stat = cublasSetMatrix(A.height, A.width, sizeof(float), A.elements, A.height, d_A.elements, d_A.height);
+    stat = cublasSetMatrix(A.height, A.width, sizeof(double), A.elements, A.height, d_A.elements, d_A.height);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("data download from host to device failed");
         cublasDestroy_v2(handle);
@@ -67,7 +67,7 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
         
         return EXIT_FAILURE;
     }
-    stat = cublasSetMatrix(B.height, B.width, sizeof(float), B.elements, B.height, d_B.elements, d_B.height);
+    stat = cublasSetMatrix(B.height, B.width, sizeof(double), B.elements, B.height, d_B.elements, d_B.height);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("data download from host to device failed");
         cublasDestroy_v2(handle);
@@ -79,8 +79,8 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
     }
     
     // d_C = d_A * d_B
-    float const alpha(1.0);
-    float const beta(0.0);
+    double const alpha(1.0);
+    double const beta(0.0);
     
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
@@ -88,7 +88,7 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
     cudaEventRecord(start);
 
     // ???
-    stat = cublasSgemm_v2(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, m, k, &alpha, d_B.elements, n, d_A.elements, k, &beta, d_C.elements, n);
+    stat = cublasDgemm_v2(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, m, k, &alpha, d_B.elements, n, d_A.elements, k, &beta, d_C.elements, n);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("mutiply matrix in device failed");
         cudaFree(d_A.elements);
@@ -109,7 +109,7 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
 
     
    // Get matrix
-    stat = cublasGetMatrix(d_C.height, d_C.width, sizeof(float), d_C.elements, d_C.height, C.elements, C.height);
+    stat = cublasGetMatrix(d_C.height, d_C.width, sizeof(double), d_C.elements, d_C.height, C.elements, C.height);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("data download from device to host failed");
         cudaFree(d_A.elements);

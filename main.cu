@@ -6,6 +6,7 @@
 
 void compare(const Matrix, const Matrix);
 
+
 int main() {
     // m == a.height, n == b.width, k == a.width
     int m, n, k;
@@ -17,9 +18,9 @@ int main() {
     printf("input a.width : ");
     scanf("%d", &k);
 
-    size_t size_A = m * k * sizeof(float);
-    size_t size_B = n * k * sizeof(float);
-    size_t size_C = m * n * sizeof(float);
+    size_t size_A = m * k * sizeof(double);
+    size_t size_B = n * k * sizeof(double);
+    size_t size_C = m * n * sizeof(double);
 
     // memory allocation
     Matrix A, B, C1, C2, C3;
@@ -28,11 +29,11 @@ int main() {
     C1.width = C1.stride = n; C1.height = m;
     C2.width = C2.stride = n; C2.height = m;
     C3.width = C3.stride = n; C3.height = m;
-    A.elements = (float*)malloc(size_A);
-    B.elements = (float*)malloc(size_B);
-    C1.elements = (float*)malloc(size_C);
-    C2.elements = (float*)malloc(size_C);
-    C3.elements = (float*)malloc(size_C);
+    A.elements = (double*)malloc(size_A);
+    B.elements = (double*)malloc(size_B);
+    C1.elements = (double*)malloc(size_C);
+    C2.elements = (double*)malloc(size_C);
+    C3.elements = (double*)malloc(size_C);
 
     // fill matrix A, B
     setMatrix(A);
@@ -60,11 +61,11 @@ int main() {
     compare(C1, C2);
     compare(C1, C3);
     
-    
+
     //printMatrix(C1);
     //printMatrix(C2);
     //printMatrix(C3);
-
+    
 
     // free memory
     free(A.elements);
@@ -76,6 +77,7 @@ int main() {
     return 0;
 }
 
+
 // compare matrix
 void compare(const Matrix A, const Matrix B) {
     bool r = true;
@@ -85,8 +87,8 @@ void compare(const Matrix A, const Matrix B) {
         if (diff < 0) { diff *= -1;  }
 
         // 내가 만든 커널이 정밀도? 는 더 높다 0 개수 차이
-        if (diff > 0.0000001) {
-            printf("일치하지 않는 부분 : CPU[%d] = %.8f, GPU[%d] = %.8f\n", i, A.elements[i], i, B.elements[i]);
+        if (diff > 0.00000000001) {
+            printf("일치하지 않는 부분 : CPU[%d] = %.15lf, GPU[%d] = %.15lf\n", i, A.elements[i], i, B.elements[i]);
             r = false;
         }
     }

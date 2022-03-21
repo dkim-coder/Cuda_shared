@@ -8,14 +8,14 @@ void setMatrix(Matrix A) {
 	srand((unsigned int)time(NULL));
 
 	for (int i = 0; i < (A.height * A.width); i++) {
-		A.elements[i] = (float)(rand() % 100) / 1000;
+		A.elements[i] = (double)(rand() % 100) / 1000;
 	}
 }
 
 
 void matCPU(const Matrix A,const Matrix B, Matrix C) {
 	int idx = 0;
-	float tmp;
+	double tmp;
 
 	for (int i = 0; i < A.height; i++) {
 		for (int j = 0; j < B.width; j++) {
@@ -35,7 +35,7 @@ void printMatrix(const Matrix A) {
 
 	for (int i = 0; i < A.height; i++) {
 		for (int j = 0; j < A.width; j++) {
-			printf("%.8f ", A.elements[idx]);
+			printf("%.15lf ", A.elements[idx]);
 			idx++;
 		}
 		printf("\n");
