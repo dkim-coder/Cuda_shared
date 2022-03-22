@@ -87,7 +87,7 @@ int cublasMat(const Matrix A, const Matrix B, Matrix C) {
     cudaEventCreate(&stop);
     cudaEventRecord(start);
 
-    // ???
+
     stat = cublasDgemm_v2(handle, CUBLAS_OP_N, CUBLAS_OP_N, n, m, k, &alpha, d_B.elements, n, d_A.elements, k, &beta, d_C.elements, n);
     if (stat != CUBLAS_STATUS_SUCCESS) {
         printf("mutiply matrix in device failed");
