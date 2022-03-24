@@ -11,13 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="main.cu" />
-    <CudaCompile Include="matMul_cpu.cu" />
-    <CudaCompile Include="matMul_cublas.cu" />
-    <CudaCompile Include="matMul_gpu.cu" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="matMul.cuh" />
+    <CudaCompile Include="main2.cu" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4324207A-D7CB-4F6E-9DA5-0E57B3E68A83}</ProjectGuid>
