@@ -4,7 +4,7 @@
 #ifndef _matMul_cuh_
 #define _matMul_cuh_
 
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 5
 
 typedef struct{
     int width;
@@ -13,6 +13,14 @@ typedef struct{
     double* elements;
 }Matrix;
 
+typedef struct {
+    int width;
+    int height;
+    int depth;
+    int stride_w;
+    int stride_h;
+    double* elements;
+}Tensor3D;
 
 void setMatrix(Matrix);
 void matCPU(const Matrix, const Matrix, Matrix);

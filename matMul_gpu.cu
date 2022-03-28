@@ -117,7 +117,7 @@ __global__ void MatMulKernel(const Matrix A, const Matrix B, Matrix C)
 
         __syncthreads();
     }
-
+    
     if (x < B.width && y < A.height) {
         SetElement(Csub, row, col, Cvalue);
     }
