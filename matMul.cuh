@@ -22,6 +22,7 @@ typedef struct {
     double* elements;
 }Tensor3D;
 
+
 void setMatrix(Matrix);
 void matCPU(const Matrix, const Matrix, Matrix);
 void printMatrix(const Matrix);

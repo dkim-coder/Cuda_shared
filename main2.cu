@@ -195,9 +195,46 @@ __device__ double GetElementTensor3D(const Tensor3D A, const int depth, const in
 
 // shared memory 사용하기 미완성
 __global__ void MatMulKernel3(const Matrix A, const Tensor3D B, Tensor3D C) {
-   
-}
+    int depth = blockIdx.z * blockDim.z + threadIdx.z;    //a
+    int row = blockIdx.y * blockDim.y + threadIdx.y;  //b
+    int col = blockIdx.x * blockDim.x + threadIdx.x;  //c
+    
+    Tensor3D Csub = GetSubTensor3D(C, blockDim.z, blockDim.y, blockDim.x);
 
+    __shared__ double As[BLOCK_SIZE][BLOCK_SIZE];
+    __shared__ double Bs[BLOCK_SIZE][BLOCK_SIZE][BLOCK_SIZE];
+
+    double Cvalue = 0.0;
+
+    for (int k = 0; k < (A.width + BLOCK_SIZE - 1) / BLOCK_SIZE; k++) {
+        Matrix Asub = GetSubMatrix(A, blockIdx.z, k);
+        Tensor3D Bsub = GetSubTensor3D(B, k, blockIdx.x, blockIdx.y);
+        
+        for (int i = 0; i < BLOCK_SIZE; i++) {
+            As[threadIdx.z][i] = 0.0;
+            Bs[i][threadIdx.x][threadIdx.y] = 0.0;
+
+
+            if (k == ((A.width + BLOCK_SIZE - 1) / BLOCK_SIZE - 1)) {
+                if (depth < A.height && ((k + 1) * BLOCK_SIZE + i < A.width)) As[threadIdx.z][i] = GetElement(Asub, threadIdx.z, i);
+                if (col < B.height && row < B.width && ((k + 1) * BLOCK_SIZE + i < A.width))  Bs[i][threadIdx.x][threadIdx.y] = GetElementTensor3D(Bsub, i, threadIdx.x, threadIdx.y);
+            }
+            else {
+                if (depth < A.height) As[threadIdx.z][i] = GetElement(Asub, threadIdx.z, i);
+                if (col < B.height && row < B.width) Bs[i][threadIdx.x][threadIdx.y] = GetElementTensor3D(Bsub, i, threadIdx.x, threadIdx.y);
+            }
+            __syncthreads();
+
+            Cvalue += As[threadIdx.z][i] * Bs[i][threadIdx.x][threadIdx.y];
+
+            __syncthreads();
+        }
+    }
+    
+    if (depth < C.depth && row < C.height && col < C.width) {
+        SetSubTensor3D(C, threadIdx.z, threadIdx.y, threadIdx.x, Cvalue);
+    }
+}
 
 
 

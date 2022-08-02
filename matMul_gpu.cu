@@ -3,6 +3,7 @@
 #include "matMul.cuh"
 #include <stdio.h>
 #include <stdlib.h>
+#include<memcpy_async.h>
 
 
 __device__ double GetElement(const Matrix A, int row, int col)

@@ -11,7 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="main2.cu" />
+    <CudaCompile Include="main.cu" />
+    <CudaCompile Include="matMul_cpu.cu" />
+    <CudaCompile Include="matMul_cublas.cu" />
     <CudaCompile Include="matMul_gpu.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -48,6 +50,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <ExternalIncludePath>C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\include\cooperative_groups;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
